@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI Clip Studio</title>
+<style>
+:root{color-scheme:dark;--bg:#090b12;--panel:#121622;--line:#252c3c;--muted:#9ba5b8;--text:#eef2fb;--accent:#8b7cff;--good:#48d6a0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#24204b 0,transparent 36%),var(--bg);color:var(--text);font:15px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+main{max-width:1050px;margin:auto;padding:40px 22px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:42px}.brand{font-weight:800;letter-spacing:-.04em;font-size:20px}.brand span{color:var(--accent)}.pill{border:1px solid var(--line);border-radius:99px;padding:7px 12px;color:var(--muted);font-size:12px}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.02;letter-spacing:-.055em;margin:0 0 15px}.lead{color:var(--muted);max-width:650px;margin:0 0 30px}.panel{background:linear-gradient(145deg,#171c2b,#10141e);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 18px 60px #0005}.tabs{display:flex;gap:8px;margin-bottom:20px}.tab{background:#0d111b;border:1px solid var(--line);color:var(--muted);padding:10px 14px;border-radius:10px;cursor:pointer}.tab.active{background:#28244c;color:#fff;border-color:#6258ba}.drop{border:1px dashed #505a75;border-radius:16px;padding:34px 18px;text-align:center;background:#0c111b}.drop strong{display:block;font-size:17px;margin:8px 0}.drop p,.muted{color:var(--muted);font-size:13px}.btn{background:var(--accent);border:0;color:white;border-radius:11px;padding:12px 18px;font-weight:700;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}input[type=file],input[type=url]{max-width:100%;margin:12px 0;color:var(--muted)}input[type=url]{width:100%;background:#0b101a;border:1px solid var(--line);border-radius:10px;padding:13px;color:var(--text)}.settings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}.setting{padding:13px;background:#0c111b;border:1px solid var(--line);border-radius:12px}.setting small{display:block;color:var(--muted);margin-bottom:4px}.setting b{font-size:14px}.status{margin-top:20px;display:none}.bar{height:8px;background:#252c3c;border-radius:20px;overflow:hidden;margin:9px 0}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--good));transition:width .3s}.result{margin-top:14px;display:grid;gap:10px}.clip{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0c111b;display:flex;justify-content:space-between;gap:14px;align-items:center}.clip a{color:#b8b0ff}.warning{color:#f4c879;font-size:12px;margin-top:16px}.hidden{display:none!important}@media(max-width:650px){main{padding:25px 15px}.settings{grid-template-columns:1fr}.panel{padding:17px}.top{margin-bottom:32px}.clip{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body><main>
+<header class="top"><div class="brand">AI <span>CLIP</span> STUDIO</div><div class="pill">LOCAL MVP · v0.1.0</div></header>
+<h1>Turn long videos<br>into <span style="color:var(--accent)">great clips.</span></h1>
+<p class="lead">AI-assisted video clipping dengan transkripsi, kandidat highlight, dan ekspor vertikal 9:16. Pemrosesan berjalan di perangkat/server lokalmu.</p>
+<section class="panel">
+<div class="tabs"><button class="tab active" id="uploadTab">Upload video</button><button class="tab" id="urlTab">Import URL</button></div>
+<div id="uploadPane"><div class="drop"><div style="font-size:30px">↥</div><strong>Pilih video untuk mulai</strong><p>MP4, MOV, MKV, WEBM, M4V · Maksimal 1 GB</p><input id="videoFile" type="file" accept="video/mp4,video/quicktime,video/x-matroska,video/webm,video/x-m4v"></div><button class="btn" id="startBtn" disabled style="margin-top:16px">Analyze & create clips</button></div>
+<div id="urlPane" class="hidden"><p class="muted">Tempel URL YouTube. Import URL sedang disiapkan dan belum aktif pada build awal.</p><input id="videoUrl" type="url" placeholder="https://youtube.com/watch?v=..."><button class="btn" id="urlBtn">Check URL</button><p id="urlMessage" class="muted"></p></div>
+<div class="settings"><div class="setting"><small>Editing style</small><b>Adaptive</b></div><div class="setting"><small>Intensity</small><b>Professional</b></div><div class="setting"><small>Export format</small><b>MP4 · 9:16</b></div></div>
+<div class="status" id="status"><b id="stage">Menyiapkan...</b><div class="bar"><i id="progress"></i></div><span class="muted" id="statusText"></span><div class="result" id="results"></div></div>
+<p class="warning">Catatan MVP: kandidat highlight awal menggunakan skor heuristik dari transkrip, bukan penilaian editorial sempurna. Selalu tinjau hasil sebelum dipublikasikan. Gunakan hanya video yang boleh kamu proses.</p>
+</section>
+</main>
+<script>
+const $=id=>document.getElementById(id);let activeJob=null;
+$('uploadTab').onclick=()=>{ $('uploadPane').classList.remove('hidden');$('urlPane').classList.add('hidden');$('uploadTab').classList.add('active');$('urlTab').classList.remove('active')};
+$('urlTab').onclick=()=>{ $('urlPane').classList.remove('hidden');$('uploadPane').classList.add('hidden');$('urlTab').classList.add('active');$('uploadTab').classList.remove('active')};
+$('videoFile').onchange=()=>{$('startBtn').disabled=!$('videoFile').files.length};
+$('startBtn').onclick=async()=>{const file=$('videoFile').files[0];if(!file)return;$('startBtn').disabled=true;$('status').style.display='block';$('results').innerHTML='';$('stage').textContent='Mengunggah video...';$('statusText').textContent=file.name;const form=new FormData();form.append('file',file);try{const r=await fetch('/api/upload',{method:'POST',body:form});const data=await r.json();if(!r.ok)throw new Error(data.detail||'Upload gagal');activeJob=data.job_id;poll();}catch(e){$('stage').textContent='Gagal';$('statusText').textContent=e.message;$('startBtn').disabled=false}};
+async function poll(){if(!activeJob)return;try{const r=await fetch('/api/jobs/'+activeJob);const j=await r.json();$('stage').textContent=j.stage||j.status;$('progress').style.width=(j.progress||0)+'%';$('statusText').textContent=j.error||`${j.status} · ${j.progress||0}%`;
+if(j.status==='completed'){const clips=j.clips||[];$('results').innerHTML=clips.length?clips.map(c=>`<div class="clip"><div><b>${escapeHtml(c.title)}</b><div class="muted">${c.start}s – ${c.end}s</div></div><a href="${c.url}">Download MP4 ↗</a></div>`).join(''):'<p class="muted">Belum ada highlight yang dapat dipilih otomatis. Coba video dengan audio dan percakapan yang jelas.</p>';$('startBtn').disabled=false;activeJob=null;return}
+if(j.status==='failed'){$('startBtn').disabled=false;activeJob=null;return}setTimeout(poll,1800)}catch(e){$('statusText').textContent='Tidak dapat membaca status job: '+e.message;$('startBtn').disabled=false;activeJob=null}}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+$('urlBtn').onclick=async()=>{const url=$('videoUrl').value.trim();$('urlMessage').textContent='Memeriksa URL...';try{const r=await fetch('/api/import-url',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url})});const d=await r.json();$('urlMessage').textContent=d.message||d.detail||'Tidak dapat memproses URL.'}catch(e){$('urlMessage').textContent=e.message}};
+</script></body></html>
